@@ -53,8 +53,14 @@ struct branch_predictor {
     //  * branch_predictor: the instance of branch_predictor to clean up.
     void (*cleanup)(struct branch_predictor *branch_predictor);
 
-    // Use this pointer to store any data that the branch predictor needs.
-    void *data;
+    // Use for BTFNT.
+    struct branch_metadata *data;
+
+    // Pattern History Table
+    uint32_t *pht;
+
+    // Use for history registers
+    uint32_t *history_register;
 };
 
 struct branch_predictor *ant_branch_predictor_new(uint32_t num_branches,
