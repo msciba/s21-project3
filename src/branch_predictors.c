@@ -273,7 +273,7 @@ void tbg_branch_predictor_handle_result(struct branch_predictor *branch_predicto
     // given the most recent branch direction.
     uint32_t index = branch_predictor->history_register;
     if (branch_direction == TAKEN) {
-        if(branch_predictor->pht[index] != 4) {
+        if(branch_predictor->pht[index] != 3) {
             branch_predictor->pht[index]++;
         }
         branch_predictor->history_register = (index << 1) | 0b00000000000000000000000000000001;
@@ -336,7 +336,7 @@ void tbl_branch_predictor_handle_result(struct branch_predictor *branch_predicto
     uint32_t index = address & 0b00000000000000000000000000001111;
     uint32_t value = branch_predictor->history_register[index - 1];
     if (branch_direction == TAKEN) {
-        if(branch_predictor->pht[(index-1)*16 + value] != 4) {
+        if(branch_predictor->pht[(index-1)*16 + value] != 3) {
             branch_predictor->pht[(index-1)*16 + value]++;
         }
         branch_predictor->history_register[index - 1] = (value << 1) | 0b00000000000000000000000000000001;
