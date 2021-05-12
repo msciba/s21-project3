@@ -196,8 +196,10 @@ enum branch_direction ltl_branch_predictor_predict(struct branch_predictor *bran
     // return this branch predictors prediction for the branch at the
     // given address.
     uint32_t index = address & 0b00000000000000000000000000001111;
-    uint32_t value = branch_predictor->history_register[index - 1];
-    if(branch_predictor->pht[(index-1)*16 + value] == 0) {
+    printf("help\n");
+    printf("%d\n", index);
+    uint32_t value = branch_predictor->history_register[index];
+    if(branch_predictor->pht[(index*16) + value] == 0) {
         return NOT_TAKEN;
     } else {
         return TAKEN;
@@ -210,15 +212,15 @@ void ltl_branch_predictor_handle_result(struct branch_predictor *branch_predicto
     // use this function to update the state of the branch predictor
     // given the most recent branch direction.
     uint32_t index = address & 0b00000000000000000000000000001111;
-    uint32_t value = branch_predictor->history_register[index - 1];
+    uint32_t value = branch_predictor->history_register[index];
     if (branch_direction == TAKEN) {
-        branch_predictor->pht[(index-1)*16 + value] = 1;
-        branch_predictor->history_register[index - 1] = (value << 1) | 0b00000000000000000000000000000001;
-        value = branch_predictor->history_register[index - 1];
-        branch_predictor->history_register[index - 1] = value & 0b00000000000000000000000000001111;
+        branch_predictor->pht[(index*16) + value] = 1;
+        branch_predictor->history_register[index] = (value << 1) | 0b00000000000000000000000000000001;
+        value = branch_predictor->history_register[index];
+        branch_predictor->history_register[index] = value & 0b00000000000000000000000000001111;
     } else {
-        branch_predictor->pht[(index-1)*16 + value] = 0;
-        branch_predictor->history_register[index - 1] = (value << 1) & 0b00000000000000000000000000001111;
+        branch_predictor->pht[(index*16) + value] = 0;
+        branch_predictor->history_register[index] = (value << 1) & 0b00000000000000000000000000001111;
     }
 }
 
@@ -239,7 +241,7 @@ struct branch_predictor *ltl_branch_predictor_new(uint32_t num_branches,
 
     // allocate storage for any data necessary for this branch predictor
     ltl_bp->history_register = calloc(16, sizeof(uint32_t));
-    ltl_bp->pht = calloc(16*16, sizeof(uint32_t));
+    ltl_bp->pht = calloc(256, sizeof(uint32_t));
     for(uint32_t i = 0; i < 256; i++) {
         if(i < 16) {
             ltl_bp->history_register[i] = 0;
@@ -320,8 +322,8 @@ enum branch_direction tbl_branch_predictor_predict(struct branch_predictor *bran
     // return this branch predictors prediction for the branch at the
     // given address.
     uint32_t index = address & 0b00000000000000000000000000001111;
-    uint32_t value = branch_predictor->history_register[index - 1];
-    if(branch_predictor->pht[(index-1)*16 + value] == 0 || branch_predictor->pht[(index-1)*16 + value] == 1) {
+    uint32_t value = branch_predictor->history_register[index];
+    if(branch_predictor->pht[(index*16) + value] == 0 || branch_predictor->pht[(index*16) + value] == 1) {
         return NOT_TAKEN;
     } else {
         return TAKEN;
@@ -334,19 +336,19 @@ void tbl_branch_predictor_handle_result(struct branch_predictor *branch_predicto
     // use this function to update the state of the branch predictor
     // given the most recent branch direction.
     uint32_t index = address & 0b00000000000000000000000000001111;
-    uint32_t value = branch_predictor->history_register[index - 1];
+    uint32_t value = branch_predictor->history_register[index];
     if (branch_direction == TAKEN) {
-        if(branch_predictor->pht[(index-1)*16 + value] != 3) {
-            branch_predictor->pht[(index-1)*16 + value]++;
+        if(branch_predictor->pht[(index*16) + value] != 3) {
+            branch_predictor->pht[(index*16) + value]++;
         }
-        branch_predictor->history_register[index - 1] = (value << 1) | 0b00000000000000000000000000000001;
-        value = branch_predictor->history_register[index - 1];
-        branch_predictor->history_register[index - 1] = value & 0b00000000000000000000000000001111;
+        branch_predictor->history_register[index] = (value << 1) | 0b00000000000000000000000000000001;
+        value = branch_predictor->history_register[index];
+        branch_predictor->history_register[index] = value & 0b00000000000000000000000000001111;
     } else {
-        if(branch_predictor->pht[(index-1)*16 + value] != 0) {
-            branch_predictor->pht[(index-1)*16 + value]--;
+        if(branch_predictor->pht[(index*16) + value] != 0) {
+            branch_predictor->pht[(index*16) + value]--;
         }
-        branch_predictor->history_register[index - 1] = (value << 1) & 0b00000000000000000000000000001111;
+        branch_predictor->history_register[index] = (value << 1) & 0b00000000000000000000000000001111;
     }
 }
 
@@ -367,7 +369,7 @@ struct branch_predictor *tbl_branch_predictor_new(uint32_t num_branches,
 
     // allocate storage for any data necessary for this branch predictor
     tbl_bp->history_register = calloc(16, sizeof(uint32_t));
-    tbl_bp->pht = calloc(16*16, sizeof(uint32_t));
+    tbl_bp->pht = calloc(256, sizeof(uint32_t));
     for(uint32_t i = 0; i < 256; i++) {
         if(i < 16) {
             tbl_bp->history_register[i] = 0;
